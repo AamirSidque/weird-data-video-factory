@@ -1,7 +1,7 @@
 name: RawSignal Daily Video
 on:
   schedule:
-    - cron: '30 18 * * *'
+  - cron: "30 3,7,11,15,19,23 * * *"
   workflow_dispatch:
     inputs:
       generator:
