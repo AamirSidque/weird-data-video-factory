@@ -1,32 +1,53 @@
 name: RawSignal Daily Video
+
 on:
   schedule:
-  - cron: "30 3,7,11,15,19,23 * * *"
+    - cron: "30 3,7,11,15,19,23 * * *"
+
   workflow_dispatch:
     inputs:
       generator:
-        description: 'Generator ID, e.g. H08, DNA02, HASH08. Blank = random'
+        description: "Generator ID, e.g. H08, DNA02, HASH08. Blank = random"
         required: false
-        default: ''
+        default: ""
+
+permissions:
+  contents: write
+
 jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - uses: actions/setup-python@v5
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - name: Render and send
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Render and send video
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python -m src.main --generator "${{ github.event.inputs.generator }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rawsignal-video
-          path: output/
-          retention-days: 3
+        run: |
+          python -m src.main --generator "${{ github.event.inputs.generator }}"
+
+      - name: Save generation history
+        run: |
+          git config user.name "RawSignal Bot"
+          git config user.email "actions@github.com"
+          git add data/generation_history.json
+          git diff --cached --quiet || git commit -m "Update generation history"
+          git push
