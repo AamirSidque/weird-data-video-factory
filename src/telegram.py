@@ -16,7 +16,7 @@ def send_video(bot_token: str, chat_id: str, video_path: str, title: str,
         r = requests.post(
             url,
             data={"chat_id": chat_id, "caption": caption},
-            files={"video": (video_path.split("/")[-1], f, "video/mp4")},
+            files={"video": (video_path.name, f, "video/mp4")},
             timeout=180,
         )
     r.raise_for_status()
