@@ -1,0 +1,57 @@
+name: Generate Daily Weird Data Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      generator:
+        description: "Optional generator ID (e.g. H06, D01, X10)"
+        required: false
+        default: ""
+  schedule:
+    # Daily at 18:30 UTC = 00:00 IST.
+    - cron: "30 18 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate and send video
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "${{ github.event.inputs.generator }}" ]; then
+            python -m src.main --generator "${{ github.event.inputs.generator }}"
+          else
+            python -m src.main
+          fi
+
+      - name: Upload generated file as workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-video
+          path: output/
+          retention-days: 3
