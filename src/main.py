@@ -38,5 +38,5 @@ def main():
   audio(g,vals,duration,int(cfg.get('audio_sample_rate',44100)),seed,wav); subprocess.run(['ffmpeg','-y','-loglevel','error','-i',str(raw),'-i',str(wav),'-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','aac','-b:a','160k','-shortest','-movflags','+faststart',str(final)],check=True); raw.unlink(missing_ok=True);wav.unlink(missing_ok=True)
  else: raw.replace(final)
  meta={'title':ttl,'generator':g['id'],'data_type':g['data_type'],'data_label':g['data_label'],'visual_method':g['method'],'visual_method_label':g['method_label'],'seed':seed,'duration_seconds':duration,'fps':cfg['fps'],'resolution':f'{cfg["width"]}x{cfg["height"]}','audio':bool(cfg.get('audio_enabled',True))};(OUT/f'{stem}.json').write_text(json.dumps(meta,indent=2));print(json.dumps(meta,indent=2)); token=os.getenv('TELEGRAM_BOT_TOKEN');chat=os.getenv('TELEGRAM_CHAT_ID');
- if cfg.get('send_to_telegram',True) and token and chat: send_video(token,chat,final,f'{ttl}\n\nGenerator: {g["id"]}\nData: {g["data_label"]}\nDuration: {duration}s\nSeed: {seed}')
+ if cfg.get('send_to_telegram',True) and token and chat: send_video(token,chat,final,ttl,g['id'],g['data_label'],seed)
 if __name__=='__main__':main()
