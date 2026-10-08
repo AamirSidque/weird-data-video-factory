@@ -1,0 +1,32 @@
+name: RawSignal Daily Video
+on:
+  schedule:
+    - cron: '30 18 * * *'
+  workflow_dispatch:
+    inputs:
+      generator:
+        description: 'Generator ID, e.g. H08, DNA02, HASH08. Blank = random'
+        required: false
+        default: ''
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Render and send
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m src.main --generator "${{ github.event.inputs.generator }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rawsignal-video
+          path: output/
+          retention-days: 3
