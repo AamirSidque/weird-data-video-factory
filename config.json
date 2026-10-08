@@ -1,0 +1,14 @@
+{
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "min_duration_seconds": 20,
+  "max_duration_seconds": 180,
+  "crf": 23,
+  "preset": "veryfast",
+  "audio_enabled": true,
+  "audio_sample_rate": 44100,
+  "generator_mode": "random",
+  "fixed_generator": null,
+  "send_to_telegram": true
+}
