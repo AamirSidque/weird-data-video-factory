@@ -19,262 +19,133 @@ from .generators import (
 from .telegram import send_video
 
 
+# =========================================================
+# PATHS
+# =========================================================
+
 ROOT = Path(__file__).resolve().parents[1]
+
 OUT = ROOT / "output"
 TMP = ROOT / "tmp"
+HISTORY_FILE = ROOT / "data" / "generation_history.json"
 
 OUT.mkdir(exist_ok=True)
 TMP.mkdir(exist_ok=True)
+HISTORY_FILE.parent.mkdir(exist_ok=True)
 
 
-def render_video(g, cfg, seed, data_vals, duration, out):
-    fps = int(cfg["fps"])
-    width = int(cfg["width"])
-    height = int(cfg["height"])
+# =========================================================
+# GENERATION HISTORY
+# =========================================================
 
-    rng = np.random.default_rng(seed + 77)
+def load_generation_history():
+    """
+    Load previously generated signatures.
 
-    params = {
-        "density": float(rng.uniform(0.35, 1.0)),
-        "chaos": float(rng.uniform(0.2, 1.0)),
-        "spin": float(rng.uniform(0.2, 1.8)),
-    }
+    The history file is intentionally small and contains
+    only generation signatures, not videos.
+    """
 
-    total_frames = max(1, int(duration * fps))
+    if not HISTORY_FILE.exists():
+        HISTORY_FILE.write_text(
+            json.dumps(
+                {"signatures": []},
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
 
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-loglevel",
-        "error",
-        "-f",
-        "rawvideo",
-        "-pix_fmt",
-        "rgb24",
-        "-s",
-        f"{width}x{height}",
-        "-r",
-        str(fps),
-        "-i",
-        "-",
-        "-an",
-        "-c:v",
-        "libx264",
-        "-preset",
-        cfg.get("preset", "veryfast"),
-        "-crf",
-        str(cfg.get("crf", 23)),
-        "-pix_fmt",
-        "yuv420p",
-        "-movflags",
-        "+faststart",
-        str(out),
-    ]
-
-    process = subprocess.Popen(
-        cmd,
-        stdin=subprocess.PIPE,
-    )
+        return []
 
     try:
-        for i in range(total_frames):
-            progress = i / max(1, total_frames - 1)
-
-            image = frame(
-                width,
-                height,
-                progress,
-                data_vals,
-                g["data_type"],
-                g["method"],
-                seed,
-                params,
+        data = json.loads(
+            HISTORY_FILE.read_text(
+                encoding="utf-8"
             )
+        )
 
-            process.stdin.write(
-                np.asarray(image, dtype=np.uint8).tobytes()
-            )
+        signatures = data.get(
+            "signatures",
+            [],
+        )
 
-    finally:
-        if process.stdin:
-            process.stdin.close()
+        if not isinstance(signatures, list):
+            return []
 
-        return_code = process.wait()
+        return signatures
 
-    if return_code != 0:
-        raise RuntimeError("FFmpeg video render failed")
+    except (json.JSONDecodeError, OSError):
+        print(
+            "Warning: generation history could not "
+            "be read. Starting with empty history."
+        )
+
+        return []
 
 
-def audio(g, vals, duration, rate, seed, out):
-    total_samples = int(duration * rate)
+def save_generation_signature(signature):
+    """
+    Add a successful generation signature to history.
 
-    values_array = np.resize(
-        np.asarray(vals, dtype=float),
-        256,
+    History is capped at 10,000 entries so the JSON file
+    remains small.
+    """
+
+    signatures = load_generation_history()
+
+    if signature not in signatures:
+        signatures.append(signature)
+
+    signatures = signatures[-10000:]
+
+    HISTORY_FILE.write_text(
+        json.dumps(
+            {
+                "signatures": signatures,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
     )
 
-    base_frequencies = {
-        "frequency": 220,
-        "morse": 120,
-        "dna": 180,
-        "binary": 90,
-        "hex": 130,
-        "hashes": 100,
-    }
 
-    base_frequency = base_frequencies.get(
-        g["data_type"],
-        145,
+def create_generation_signature(
+    generator_id,
+    seed,
+    duration,
+    params,
+):
+    """
+    Create a deterministic signature for the complete
+    generation configuration.
+
+    Same generator + same seed + same duration +
+    same visual parameters = same generation.
+    """
+
+    return (
+        f"{generator_id}|"
+        f"{seed}|"
+        f"{duration}|"
+        f"{params['density']:.8f}|"
+        f"{params['chaos']:.8f}|"
+        f"{params['spin']:.8f}"
     )
 
-    chunk_size = max(1, rate * 2)
 
-    with wave.open(str(out), "wb") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(rate)
-
-        phase0 = 0.0
-
-        for start in range(0, total_samples, chunk_size):
-            count = min(
-                chunk_size,
-                total_samples - start,
-            )
-
-            positions = np.arange(
-                start,
-                start + count,
-            )
-
-            if total_samples > 1:
-                normalized_positions = np.linspace(
-                    0,
-                    total_samples - 1,
-                    256,
-                )
-
-                control = np.interp(
-                    positions,
-                    normalized_positions,
-                    values_array,
-                )
-            else:
-                control = np.full(
-                    count,
-                    values_array[0],
-                )
-
-            time = positions / rate
-
-            frequency = base_frequency * (
-                0.55 + 1.5 * control
-            )
-
-            phase = (
-                phase0
-                + 2
-                * np.pi
-                * np.cumsum(frequency)
-                / rate
-            )
-
-            phase0 = float(phase[-1])
-
-            signal = (
-                0.18 * np.sin(phase)
-                + 0.08 * np.sin(
-                    phase * 2.01 + control * 4
-                )
-                + 0.04 * np.sin(
-                    phase * 3.01
-                )
-            )
-
-            gate = (
-                control > 0.62
-            ).astype(float)
-
-            kernel_size = max(
-                1,
-                rate // 120,
-            )
-
-            kernel_size = min(
-                kernel_size,
-                count,
-            )
-
-            if kernel_size > 1:
-                gate = np.convolve(
-                    gate,
-                    np.ones(kernel_size) / kernel_size,
-                    mode="same",
-                )
-
-            signal += (
-                0.1
-                * gate
-                * np.sin(
-                    2
-                    * np.pi
-                    * base_frequency
-                    * 2
-                    * time
-                )
-            )
-
-            # Fade in
-            if start == 0:
-                fade_samples = min(
-                    count,
-                    rate * 2,
-                )
-
-                envelope = np.ones(count)
-
-                if fade_samples > 1:
-                    envelope[:fade_samples] = np.linspace(
-                        0,
-                        1,
-                        fade_samples,
-                    )
-
-            # Fade out
-            elif start + count >= total_samples - rate * 2:
-                fade_start = max(
-                    0,
-                    total_samples - rate * 2 - start,
-                )
-
-                envelope = np.ones(count)
-
-                fade_length = count - fade_start
-
-                if fade_length > 1:
-                    envelope[fade_start:] = np.linspace(
-                        1,
-                        0,
-                        fade_length,
-                    )
-
-            else:
-                envelope = np.ones(count)
-
-            signal = np.clip(
-                signal * envelope * 0.9,
-                -0.95,
-                0.95,
-            )
-
-            wav.writeframes(
-                (
-                    signal * 32767
-                ).astype(np.int16).tobytes()
-            )
-
+# =========================================================
+# DURATION
+# =========================================================
 
 def choose_duration(cfg, rng):
+    """
+    Select a variable duration between the configured
+    minimum and maximum.
+
+    Beta distribution makes medium-length videos more
+    common while still allowing short and long videos.
+    """
+
     minimum = int(
         cfg["min_duration_seconds"]
     )
@@ -297,26 +168,572 @@ def choose_duration(cfg, rng):
     return int(round(duration))
 
 
+# =========================================================
+# VISUAL PARAMETERS
+# =========================================================
+
+def generate_visual_parameters(seed):
+    """
+    Generate deterministic visual parameters from the seed.
+
+    The same seed always produces the same parameters.
+    """
+
+    rng = np.random.default_rng(
+        seed + 77
+    )
+
+    return {
+        "density": float(
+            rng.uniform(
+                0.35,
+                1.0,
+            )
+        ),
+        "chaos": float(
+            rng.uniform(
+                0.2,
+                1.0,
+            )
+        ),
+        "spin": float(
+            rng.uniform(
+                0.2,
+                1.8,
+            )
+        ),
+    }
+
+
+# =========================================================
+# VIDEO RENDERING
+# =========================================================
+
+def render_video(
+    g,
+    cfg,
+    seed,
+    data_vals,
+    duration,
+    out,
+    params,
+):
+    fps = int(
+        cfg["fps"]
+    )
+
+    width = int(
+        cfg["width"]
+    )
+
+    height = int(
+        cfg["height"]
+    )
+
+    total_frames = max(
+        1,
+        int(duration * fps),
+    )
+
+    command = [
+        "ffmpeg",
+        "-y",
+        "-loglevel",
+        "error",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "rgb24",
+        "-s",
+        f"{width}x{height}",
+        "-r",
+        str(fps),
+        "-i",
+        "-",
+        "-an",
+        "-c:v",
+        "libx264",
+        "-preset",
+        cfg.get(
+            "preset",
+            "veryfast",
+        ),
+        "-crf",
+        str(
+            cfg.get(
+                "crf",
+                23,
+            )
+        ),
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        str(out),
+    ]
+
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+    )
+
+    try:
+        for i in range(total_frames):
+
+            progress = (
+                i
+                / max(
+                    1,
+                    total_frames - 1,
+                )
+            )
+
+            image = frame(
+                width,
+                height,
+                progress,
+                data_vals,
+                g["data_type"],
+                g["method"],
+                seed,
+                params,
+            )
+
+            process.stdin.write(
+                np.asarray(
+                    image,
+                    dtype=np.uint8,
+                ).tobytes()
+            )
+
+    finally:
+
+        if process.stdin:
+            process.stdin.close()
+
+        return_code = process.wait()
+
+    if return_code != 0:
+        raise RuntimeError(
+            "FFmpeg video render failed."
+        )
+
+
+# =========================================================
+# DATA-DERIVED AUDIO
+# =========================================================
+
+def audio(
+    g,
+    vals,
+    duration,
+    rate,
+    seed,
+    out,
+):
+    total_samples = int(
+        duration * rate
+    )
+
+    values_array = np.resize(
+        np.asarray(
+            vals,
+            dtype=float,
+        ),
+        256,
+    )
+
+    base_frequencies = {
+        "frequency": 220,
+        "morse": 120,
+        "dna": 180,
+        "binary": 90,
+        "hex": 130,
+        "hashes": 100,
+    }
+
+    base_frequency = base_frequencies.get(
+        g["data_type"],
+        145,
+    )
+
+    chunk_size = max(
+        1,
+        rate * 2,
+    )
+
+    phase0 = 0.0
+
+    with wave.open(
+        str(out),
+        "wb",
+    ) as wav:
+
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(rate)
+
+        for start in range(
+            0,
+            total_samples,
+            chunk_size,
+        ):
+
+            count = min(
+                chunk_size,
+                total_samples - start,
+            )
+
+            positions = np.arange(
+                start,
+                start + count,
+            )
+
+            if total_samples > 1:
+
+                normalized_positions = (
+                    np.linspace(
+                        0,
+                        total_samples - 1,
+                        256,
+                    )
+                )
+
+                control = np.interp(
+                    positions,
+                    normalized_positions,
+                    values_array,
+                )
+
+            else:
+
+                control = np.full(
+                    count,
+                    values_array[0],
+                )
+
+            time = positions / rate
+
+            frequency = (
+                base_frequency
+                * (
+                    0.55
+                    + 1.5 * control
+                )
+            )
+
+            phase = (
+                phase0
+                + 2
+                * np.pi
+                * np.cumsum(
+                    frequency
+                )
+                / rate
+            )
+
+            phase0 = float(
+                phase[-1]
+            )
+
+            signal = (
+                0.18
+                * np.sin(phase)
+            )
+
+            signal += (
+                0.08
+                * np.sin(
+                    phase * 2.01
+                    + control * 4
+                )
+            )
+
+            signal += (
+                0.04
+                * np.sin(
+                    phase * 3.01
+                )
+            )
+
+            # Data-controlled gate
+            gate = (
+                control > 0.62
+            ).astype(float)
+
+            kernel_size = max(
+                1,
+                rate // 120,
+            )
+
+            kernel_size = min(
+                kernel_size,
+                count,
+            )
+
+            if kernel_size > 1:
+
+                gate = np.convolve(
+                    gate,
+                    np.ones(
+                        kernel_size
+                    )
+                    / kernel_size,
+                    mode="same",
+                )
+
+            signal += (
+                0.1
+                * gate
+                * np.sin(
+                    2
+                    * np.pi
+                    * base_frequency
+                    * 2
+                    * time
+                )
+            )
+
+            # -------------------------------------------------
+            # Fade in
+            # -------------------------------------------------
+
+            if start == 0:
+
+                fade_samples = min(
+                    count,
+                    rate * 2,
+                )
+
+                envelope = np.ones(
+                    count
+                )
+
+                if fade_samples > 1:
+
+                    envelope[
+                        :fade_samples
+                    ] = np.linspace(
+                        0,
+                        1,
+                        fade_samples,
+                    )
+
+            # -------------------------------------------------
+            # Fade out
+            # -------------------------------------------------
+
+            elif (
+                start + count
+                >= total_samples
+                - rate * 2
+            ):
+
+                fade_start = max(
+                    0,
+                    total_samples
+                    - rate * 2
+                    - start,
+                )
+
+                envelope = np.ones(
+                    count
+                )
+
+                fade_length = (
+                    count
+                    - fade_start
+                )
+
+                if fade_length > 1:
+
+                    envelope[
+                        fade_start:
+                    ] = np.linspace(
+                        1,
+                        0,
+                        fade_length,
+                    )
+
+            else:
+
+                envelope = np.ones(
+                    count
+                )
+
+            signal = np.clip(
+                signal
+                * envelope
+                * 0.9,
+                -0.95,
+                0.95,
+            )
+
+            wav.writeframes(
+                (
+                    signal * 32767
+                )
+                .astype(
+                    np.int16
+                )
+                .tobytes()
+            )
+
+
+# =========================================================
+# UNIQUE GENERATION SELECTION
+# =========================================================
+
+def create_unique_generation(
+    cfg,
+    requested_generator,
+    history,
+    max_attempts=50,
+):
+    """
+    Generate a new configuration that does not already
+    exist in generation_history.json.
+    """
+
+    for attempt in range(
+        1,
+        max_attempts + 1,
+    ):
+
+        # -------------------------------------------------
+        # New cryptographically strong random seed
+        # -------------------------------------------------
+
+        seed = secrets.randbelow(
+            2**31 - 1
+        )
+
+        rng = np.random.default_rng(
+            seed
+        )
+
+        # -------------------------------------------------
+        # Generator
+        # -------------------------------------------------
+
+        if requested_generator:
+
+            g = find_generator(
+                requested_generator
+            )
+
+            if g is None:
+                raise ValueError(
+                    "Unknown generator: "
+                    f"{requested_generator}"
+                )
+
+        else:
+
+            generators = all_generators()
+
+            if not generators:
+                raise RuntimeError(
+                    "No generators are available."
+                )
+
+            g = rng.choice(
+                generators
+            )
+
+        # -------------------------------------------------
+        # Duration
+        # -------------------------------------------------
+
+        duration = choose_duration(
+            cfg,
+            rng,
+        )
+
+        # -------------------------------------------------
+        # Visual parameters
+        # -------------------------------------------------
+
+        visual_params = (
+            generate_visual_parameters(
+                seed
+            )
+        )
+
+        # -------------------------------------------------
+        # Signature
+        # -------------------------------------------------
+
+        signature = (
+            create_generation_signature(
+                g["id"],
+                seed,
+                duration,
+                visual_params,
+            )
+        )
+
+        # -------------------------------------------------
+        # Duplicate check
+        # -------------------------------------------------
+
+        if signature not in history:
+
+            return (
+                g,
+                seed,
+                duration,
+                visual_params,
+                signature,
+            )
+
+        print(
+            f"Duplicate detected. "
+            f"Retry {attempt}/{max_attempts}..."
+        )
+
+    raise RuntimeError(
+        "Unable to create a unique generation "
+        f"after {max_attempts} attempts."
+    )
+
+
+# =========================================================
+# MAIN
+# =========================================================
+
 def main():
+
+    # -----------------------------------------------------
+    # Arguments
+    # -----------------------------------------------------
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--generator",
         default="",
-        help="Generator ID. Blank = random.",
+        help=(
+            "Generator ID. "
+            "Blank = random."
+        ),
     )
 
     args = parser.parse_args()
 
-    # ---------------------------------------------------------
-    # Load configuration
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Configuration
+    # -----------------------------------------------------
 
-    config_path = ROOT / "config.json"
+    config_path = (
+        ROOT / "config.json"
+    )
 
     if not config_path.exists():
+
         raise FileNotFoundError(
-            f"Configuration file not found: {config_path}"
+            "Configuration file not found: "
+            f"{config_path}"
         )
 
     cfg = json.loads(
@@ -325,51 +742,42 @@ def main():
         )
     )
 
-    # ---------------------------------------------------------
-    # Generate unique seed
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Load duplicate history
+    # -----------------------------------------------------
 
-    seed = secrets.randbelow(
-        2**31 - 1
+    history = (
+        load_generation_history()
     )
 
-    rng = np.random.default_rng(seed)
+    print(
+        f"Generation history: "
+        f"{len(history)} entries"
+    )
 
-    # ---------------------------------------------------------
-    # Select generator
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Select unique generation
+    # -----------------------------------------------------
 
-    if args.generator:
-        g = find_generator(
-            args.generator
-        )
-
-        if g is None:
-            raise ValueError(
-                f"Unknown generator: {args.generator}"
-            )
-    else:
-        generators = all_generators()
-
-        if not generators:
-            raise RuntimeError(
-                "No generators are available."
-            )
-
-        g = rng.choice(generators)
-
-    # ---------------------------------------------------------
-    # Generate duration
-    # ---------------------------------------------------------
-
-    duration = choose_duration(
+    (
+        g,
+        seed,
+        duration,
+        visual_params,
+        signature,
+    ) = create_unique_generation(
         cfg,
-        rng,
+        args.generator,
+        history,
     )
 
-    # ---------------------------------------------------------
-    # Generate raw data
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Generate data
+    # -----------------------------------------------------
+
+    rng = np.random.default_rng(
+        seed
+    )
 
     data = make_data(
         g["data_type"],
@@ -381,58 +789,87 @@ def main():
         data,
     )
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
     # Generate title
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     ttl = title(
         g,
         rng,
     )
 
-    # ---------------------------------------------------------
-    # File paths
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # File names
+    # -----------------------------------------------------
 
     stem = (
         f'{g["id"]}_{seed}'
     )
 
     raw_video = (
-        TMP / f"{stem}_raw.mp4"
+        TMP
+        / f"{stem}_raw.mp4"
     )
 
     audio_file = (
-        TMP / f"{stem}.wav"
+        TMP
+        / f"{stem}.wav"
     )
 
     final_video = (
-        OUT / f"{stem}.mp4"
+        OUT
+        / f"{stem}.mp4"
     )
 
     metadata_file = (
-        OUT / f"{stem}.json"
+        OUT
+        / f"{stem}.json"
     )
 
-    # ---------------------------------------------------------
-    # Render video
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Generation information
+    # -----------------------------------------------------
 
     print()
     print("=" * 60)
     print("RawSignal Generation")
     print("=" * 60)
-    print(f"Generator : {g['id']}")
-    print(f"Data      : {g['data_label']}")
-    print(f"Seed      : {seed}")
-    print(f"Duration  : {duration}s")
+
+    print(
+        f"Generator : {g['id']}"
+    )
+
+    print(
+        f"Data      : {g['data_label']}"
+    )
+
+    print(
+        f"Seed      : {seed}"
+    )
+
+    print(
+        f"Duration  : {duration}s"
+    )
+
     print(
         f"Resolution: "
         f"{cfg['width']}x{cfg['height']}"
     )
-    print(f"FPS       : {cfg['fps']}")
+
+    print(
+        f"FPS       : {cfg['fps']}"
+    )
+
+    print(
+        f"Signature : {signature}"
+    )
+
     print("=" * 60)
     print()
+
+    # -----------------------------------------------------
+    # Render video
+    # -----------------------------------------------------
 
     render_video(
         g,
@@ -441,11 +878,12 @@ def main():
         data_vals,
         duration,
         raw_video,
+        visual_params,
     )
 
-    # ---------------------------------------------------------
-    # Add data-derived audio
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Audio
+    # -----------------------------------------------------
 
     audio_enabled = bool(
         cfg.get(
@@ -455,6 +893,7 @@ def main():
     )
 
     if audio_enabled:
+
         audio(
             g,
             data_vals,
@@ -468,6 +907,10 @@ def main():
             seed,
             audio_file,
         )
+
+        # -------------------------------------------------
+        # Combine video + audio
+        # -------------------------------------------------
 
         subprocess.run(
             [
@@ -506,13 +949,14 @@ def main():
         )
 
     else:
+
         raw_video.replace(
             final_video
         )
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
     # Save metadata
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     metadata = {
         "title": ttl,
@@ -520,14 +964,21 @@ def main():
         "data_type": g["data_type"],
         "data_label": g["data_label"],
         "visual_method": g["method"],
-        "visual_method_label": g["method_label"],
+        "visual_method_label": g[
+            "method_label"
+        ],
         "seed": seed,
         "duration_seconds": duration,
         "fps": cfg["fps"],
         "resolution": (
-            f'{cfg["width"]}x{cfg["height"]}'
+            f'{cfg["width"]}x'
+            f'{cfg["height"]}'
         ),
         "audio": audio_enabled,
+        "signature": signature,
+        "visual_parameters": (
+            visual_params
+        ),
     }
 
     metadata_file.write_text(
@@ -538,6 +989,20 @@ def main():
         encoding="utf-8",
     )
 
+    # -----------------------------------------------------
+    # IMPORTANT:
+    # Save signature only AFTER successful rendering.
+    # -----------------------------------------------------
+
+    save_generation_signature(
+        signature
+    )
+
+    print()
+    print(
+        "Generation signature saved."
+    )
+
     print(
         json.dumps(
             metadata,
@@ -545,9 +1010,9 @@ def main():
         )
     )
 
-    # ---------------------------------------------------------
-    # Send to Telegram
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Telegram
+    # -----------------------------------------------------
 
     token = os.getenv(
         "TELEGRAM_BOT_TOKEN"
@@ -569,6 +1034,7 @@ def main():
         and token
         and chat
     ):
+
         print()
         print(
             "Sending video to Telegram..."
@@ -588,21 +1054,28 @@ def main():
             "Telegram upload successful."
         )
 
-        # Delete video after successful upload.
-        # The video is NOT stored as a GitHub artifact.
+        # -------------------------------------------------
+        # Delete video after successful Telegram upload.
+        # -------------------------------------------------
+
         final_video.unlink(
             missing_ok=True
         )
 
+        print(
+            "Video deleted from runner."
+        )
+
     else:
+
         print()
         print(
             "Telegram upload skipped."
         )
 
-    # ---------------------------------------------------------
-    # Cleanup temporary files
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # Final cleanup
+    # -----------------------------------------------------
 
     raw_video.unlink(
         missing_ok=True
@@ -613,10 +1086,16 @@ def main():
     )
 
     print()
+    print("=" * 60)
     print(
         "Generation completed successfully."
     )
+    print("=" * 60)
 
+
+# =========================================================
+# ENTRY POINT
+# =========================================================
 
 if __name__ == "__main__":
     main()
