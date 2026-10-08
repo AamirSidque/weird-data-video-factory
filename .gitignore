@@ -1,7 +1,0 @@
-__pycache__/
-*.py[cod]
-.env
-output/
-*.mp4
-*.json
-.DS_Store
