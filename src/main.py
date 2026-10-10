@@ -966,6 +966,12 @@ def main():
     shared_audio.unlink(missing_ok=True)
 
 
+    
+if __name__ == "__main__":
+    main()
+
+
+
 
 
 
