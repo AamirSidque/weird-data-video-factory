@@ -8,6 +8,11 @@ from pathlib import Path
 
 import numpy as np
 
+from .youtube_uploader import (
+    upload_and_schedule,
+    telegram_notify,
+)
+
 from .generators import (
     all_generators,
     find_generator,
@@ -1011,6 +1016,45 @@ def main():
     )
 
     # -----------------------------------------------------
+    # YouTube upload and scheduling
+    # -----------------------------------------------------
+    # Keep final_video on disk until both YouTube upload and
+    # Telegram delivery have had a chance to use it.
+    telegram_notify(
+        "✅ RawSignal video generated\\n"
+        f"Title: {ttl}\\n"
+        f"Generator: {g['id']}\\n"
+        f"Data type: {g['data_label']}\\n"
+        f"Seed: {seed}\\n"
+        f"Duration: {duration} seconds\\n"
+        f"Resolution: {cfg['width']}x{cfg['height']}"
+    )
+
+    youtube_upload_ok = False
+
+    try:
+        upload_result = upload_and_schedule(
+            final_video,
+            metadata,
+        )
+        youtube_upload_ok = True
+        print(
+            "YouTube upload/scheduling completed: "
+            f"{upload_result.get('youtube_video_id', 'already scheduled')}"
+        )
+    except Exception as exc:
+        # Do not prevent the existing Telegram video delivery if
+        # YouTube configuration, quota, or upload fails.
+        error_message = str(exc)
+        print(f"YouTube upload/scheduling failed: {error_message}")
+        telegram_notify(
+            "❌ RawSignal YouTube upload/scheduling failed\\n"
+            f"Title: {ttl}\\n"
+            f"Generator: {g['id']}\\n"
+            f"Error: {error_message[:1200]}"
+        )
+
+    # -----------------------------------------------------
     # Telegram
     # -----------------------------------------------------
 
@@ -1055,7 +1099,8 @@ def main():
         )
 
         # -------------------------------------------------
-        # Delete video after successful Telegram upload.
+        # Delete only after Telegram delivery succeeds.
+        # YouTube upload/scheduling was attempted above.
         # -------------------------------------------------
 
         final_video.unlink(
