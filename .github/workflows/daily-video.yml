@@ -1,8 +1,13 @@
 name: RawSignal Daily Video
 
 on:
+  # Four generation runs per day, six hours apart. Cron is UTC.
+  # IST generation times: 06:00, 12:00, 18:00, 00:00.
   schedule:
-    - cron: "30 3,7,11,15,19,23 * * *"
+    - cron: "30 0 * * *"
+    - cron: "30 6 * * *"
+    - cron: "30 12 * * *"
+    - cron: "30 18 * * *"
 
   workflow_dispatch:
     inputs:
@@ -23,6 +28,15 @@ on:
           - computer_science
           - nature
           - satisfying_experiments
+      audience:
+        description: "Audience experiment (does not geo-restrict a video)"
+        required: true
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - english_global
+          - south_asia
 
 permissions:
   contents: write
@@ -48,27 +62,144 @@ jobs:
 
       - name: Install Python dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Render and send video
+      - name: Resolve audience experiment
+        env:
+          SCHEDULE_CRON: ${{ github.event.schedule || '' }}
+          MANUAL_AUDIENCE: ${{ inputs.audience || 'auto' }}
+        shell: bash
+        run: |
+          if [[ "$MANUAL_AUDIENCE" != "auto" ]]; then
+            AUDIENCE_SEGMENT="$MANUAL_AUDIENCE"
+          else
+            # Follow the requested daily order in India time:
+            # 00:00 and 06:00 IST -> first two English/global concepts;
+            # 12:00 and 18:00 IST -> next two South-Asia concepts.
+            case "$SCHEDULE_CRON" in
+              "30 18 * * *"|"30 0 * * *") AUDIENCE_SEGMENT="english_global" ;;
+              "30 6 * * *"|"30 12 * * *") AUDIENCE_SEGMENT="south_asia" ;;
+              *)
+                IST_HOUR="$(TZ=Asia/Kolkata date +%H)"
+                if (( 10#$IST_HOUR < 12 )); then
+                  AUDIENCE_SEGMENT="english_global"
+                else
+                  AUDIENCE_SEGMENT="south_asia"
+                fi
+                ;;
+            esac
+          fi
+          echo "AUDIENCE_SEGMENT=$AUDIENCE_SEGMENT" >> "$GITHUB_ENV"
+          echo "Audience experiment: $AUDIENCE_SEGMENT"
+
+      - name: Render and send videos
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
-          GENERATOR_ID: ${{ github.event.inputs.generator || '' }}
-          CONTENT_FAMILY: ${{ github.event.inputs.family || 'all' }}
+          GENERATOR_ID: ${{ inputs.generator || '' }}
+          CONTENT_FAMILY: ${{ inputs.family || 'all' }}
         run: |
-          python -m src.main --generator "$GENERATOR_ID" --family "$CONTENT_FAMILY"
+          python -m src.main \
+            --generator "$GENERATOR_ID" \
+            --family "$CONTENT_FAMILY" \
+            --audience "$AUDIENCE_SEGMENT"
 
       - name: Save generation history
         run: |
           git config user.name "RawSignal Bot"
           git config user.email "actions@github.com"
           git add data/generation_history.json
-          git diff --cached --quiet || git commit -m "Update generation history"
+          if [ -f data/youtube_state.json ]; then
+            # Persist uploader idempotency/publication state between ephemeral runners.
+            git add -f data/youtube_state.json
+          fi
+          git diff --cached --quiet || git commit -m "Update RawSignal generation and YouTube state"
           git push
+
+
+
+
+
+
+
+
+
+
+# name: RawSignal Daily Video
+
+# on:
+#   schedule:
+#     - cron: "30 3,7,11,15,19,23 * * *"
+
+#   workflow_dispatch:
+#     inputs:
+#       generator:
+#         description: "Specific generator ID (e.g. MATH01, PHY01, CS01). Blank = choose automatically."
+#         required: false
+#         default: ""
+#         type: string
+#       family:
+#         description: "Content family to generate"
+#         required: true
+#         default: "all"
+#         type: choice
+#         options:
+#           - all
+#           - mathematics
+#           - physics
+#           - computer_science
+#           - nature
+#           - satisfying_experiments
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   render:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Install FFmpeg
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y ffmpeg
+
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
+
+#       - name: Install Python dependencies
+#         run: |
+#           pip install -r requirements.txt
+
+#       - name: Render and send video
+#         env:
+#           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+#           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+#           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+#           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+#           GENERATOR_ID: ${{ github.event.inputs.generator || '' }}
+#           CONTENT_FAMILY: ${{ github.event.inputs.family || 'all' }}
+#         run: |
+#           python -m src.main --generator "$GENERATOR_ID" --family "$CONTENT_FAMILY"
+
+#       - name: Save generation history
+#         run: |
+#           git config user.name "RawSignal Bot"
+#           git config user.email "actions@github.com"
+#           git add data/generation_history.json
+#           git diff --cached --quiet || git commit -m "Update generation history"
+#           git push
 
 
 
