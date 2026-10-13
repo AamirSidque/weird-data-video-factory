@@ -127,9 +127,41 @@
       "scheduled_publish_at_ist": "2026-10-14T02:58:36+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-13T14:30:05Z"
+    },
+    {
+      "signature": "CC05|2141970912|33|0.39034170|0.68365078|1.61264265|landscape",
+      "pair_id": "CC05|2141970912|33|0.39034170|0.68365078|1.61264265",
+      "youtube_video_id": "54rD9zZxPVc",
+      "title": "How Hex Codes Represent Color | RawSignal",
+      "generator": "CC05",
+      "seed": "2141970912",
+      "video_format": "landscape",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-13T19:24:19Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-14T01:24:19Z",
+      "scheduled_publish_at_ist": "2026-10-14T06:54:19+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-13T19:25:54Z"
+    },
+    {
+      "signature": "CC05|2141970912|33|0.39034170|0.68365078|1.61264265|shorts",
+      "pair_id": "CC05|2141970912|33|0.39034170|0.68365078|1.61264265",
+      "youtube_video_id": "ulOL2WY36XI",
+      "title": "How Hex Codes Represent Color #Shorts",
+      "generator": "CC05",
+      "seed": "2141970912",
+      "video_format": "shorts",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-13T19:24:19Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-14T02:24:19Z",
+      "scheduled_publish_at_ist": "2026-10-14T07:54:19+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-13T19:25:57Z"
     }
   ],
-  "last_scheduled_at": "2026-10-13T21:28:36Z",
+  "last_scheduled_at": "2026-10-14T02:24:19Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
