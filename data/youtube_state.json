@@ -77,7 +77,7 @@
       "publish_offset_hours": 6,
       "scheduled_publish_at": "2026-10-13T12:55:51Z",
       "scheduled_publish_at_ist": "2026-10-13T18:25:51+05:30",
-      "upload_status": "scheduled",
+      "upload_status": "public",
       "created_at": "2026-10-13T06:57:37Z"
     },
     {
@@ -93,7 +93,7 @@
       "publish_offset_hours": 7,
       "scheduled_publish_at": "2026-10-13T13:55:51Z",
       "scheduled_publish_at_ist": "2026-10-13T19:25:51+05:30",
-      "upload_status": "scheduled",
+      "upload_status": "public",
       "created_at": "2026-10-13T06:57:40Z"
     },
     {
@@ -134,6 +134,8 @@
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
     "_7oOARCymZ0",
-    "A26PdkZaS0Y"
+    "A26PdkZaS0Y",
+    "RFNi4Hp26yw",
+    "_cwNyb8J4XU"
   ]
 }
