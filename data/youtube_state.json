@@ -31,9 +31,41 @@
       "scheduled_publish_at_ist": "2026-10-13T05:53:48+05:30",
       "upload_status": "public",
       "created_at": "2026-10-12T17:25:04Z"
+    },
+    {
+      "signature": "B04|82937337|45|0.91224339|0.62207352|0.50481597|landscape",
+      "pair_id": "B04|82937337|45|0.91224339|0.62207352|0.50481597",
+      "youtube_video_id": "_7oOARCymZ0",
+      "title": "How Binary Data Creates Patterns | RawSignal",
+      "generator": "B04",
+      "seed": "82937337",
+      "video_format": "landscape",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-13T00:53:13Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-13T06:53:13Z",
+      "scheduled_publish_at_ist": "2026-10-13T12:23:13+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-13T00:55:22Z"
+    },
+    {
+      "signature": "B04|82937337|45|0.91224339|0.62207352|0.50481597|shorts",
+      "pair_id": "B04|82937337|45|0.91224339|0.62207352|0.50481597",
+      "youtube_video_id": "A26PdkZaS0Y",
+      "title": "How Binary Data Creates Patterns #Shorts",
+      "generator": "B04",
+      "seed": "82937337",
+      "video_format": "shorts",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-13T00:53:13Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-13T07:53:13Z",
+      "scheduled_publish_at_ist": "2026-10-13T13:23:13+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-13T00:55:25Z"
     }
   ],
-  "last_scheduled_at": "2026-10-13T00:23:48Z",
+  "last_scheduled_at": "2026-10-13T07:53:13Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY"
