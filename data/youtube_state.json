@@ -223,9 +223,41 @@
       "scheduled_publish_at_ist": "2026-10-14T17:37:07+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-14T05:08:31Z"
+    },
+    {
+      "signature": "P09|1881225263|37|0.54111595|0.68349264|1.74174876|landscape",
+      "pair_id": "P09|1881225263|37|0.54111595|0.68349264|1.74174876",
+      "youtube_video_id": "_S6eS13Xv5U",
+      "title": "Why Do Prime Numbers Have Uneven Gaps? | RawSignal",
+      "generator": "P09",
+      "seed": "1881225263",
+      "video_format": "landscape",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-14T12:13:44Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-14T18:13:44Z",
+      "scheduled_publish_at_ist": "2026-10-14T23:43:44+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-14T12:16:12Z"
+    },
+    {
+      "signature": "P09|1881225263|37|0.54111595|0.68349264|1.74174876|shorts",
+      "pair_id": "P09|1881225263|37|0.54111595|0.68349264|1.74174876",
+      "youtube_video_id": "TlPzC-CgF3A",
+      "title": "Why Do Prime Numbers Have Uneven Gaps? #Shorts",
+      "generator": "P09",
+      "seed": "1881225263",
+      "video_format": "shorts",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-14T12:13:44Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-14T19:13:44Z",
+      "scheduled_publish_at_ist": "2026-10-15T00:43:44+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-14T12:16:16Z"
     }
   ],
-  "last_scheduled_at": "2026-10-14T12:07:07Z",
+  "last_scheduled_at": "2026-10-14T19:13:44Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
