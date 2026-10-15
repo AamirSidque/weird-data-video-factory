@@ -319,9 +319,41 @@
       "scheduled_publish_at_ist": "2026-10-15T10:20:51+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-14T21:53:05Z"
+    },
+    {
+      "signature": "F03|1169671005|37|0.35974194|0.54295600|1.24326315|landscape",
+      "pair_id": "F03|1169671005|37|0.35974194|0.54295600|1.24326315",
+      "youtube_video_id": "bGt0gOl3YBs",
+      "title": "How Frequency Changes a Wave | RawSignal",
+      "generator": "F03",
+      "seed": "1169671005",
+      "video_format": "landscape",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-15T04:55:42Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-15T10:55:42Z",
+      "scheduled_publish_at_ist": "2026-10-15T16:25:42+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-15T04:57:04Z"
+    },
+    {
+      "signature": "F03|1169671005|37|0.35974194|0.54295600|1.24326315|shorts",
+      "pair_id": "F03|1169671005|37|0.35974194|0.54295600|1.24326315",
+      "youtube_video_id": "cykfvgmByJg",
+      "title": "How Frequency Changes a Wave #Shorts",
+      "generator": "F03",
+      "seed": "1169671005",
+      "video_format": "shorts",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-15T04:55:42Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-15T11:55:42Z",
+      "scheduled_publish_at_ist": "2026-10-15T17:25:42+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-15T04:57:09Z"
     }
   ],
-  "last_scheduled_at": "2026-10-15T04:50:51Z",
+  "last_scheduled_at": "2026-10-15T11:55:42Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
