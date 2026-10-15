@@ -333,7 +333,7 @@
       "publish_offset_hours": 6,
       "scheduled_publish_at": "2026-10-15T10:55:42Z",
       "scheduled_publish_at_ist": "2026-10-15T16:25:42+05:30",
-      "upload_status": "scheduled",
+      "upload_status": "public",
       "created_at": "2026-10-15T04:57:04Z"
     },
     {
@@ -374,6 +374,7 @@
     "YSLLtwdRklU",
     "FN2R1hA6Glw",
     "CjmKNToiLW4",
-    "R2QNAGnWzrM"
+    "R2QNAGnWzrM",
+    "bGt0gOl3YBs"
   ]
 }
