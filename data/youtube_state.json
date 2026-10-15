@@ -383,9 +383,41 @@
       "scheduled_publish_at_ist": "2026-10-16T00:22:28+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-15T11:54:20Z"
+    },
+    {
+      "signature": "G09|1969207380|40|0.72754611|0.27149566|1.27497158|landscape",
+      "pair_id": "G09|1969207380|40|0.72754611|0.27149566|1.27497158",
+      "youtube_video_id": "1_KCs7O9DU0",
+      "title": "How Nodes and Connections Form a Network | RawSignal",
+      "generator": "G09",
+      "seed": "1969207380",
+      "video_format": "landscape",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-15T17:12:54Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-15T23:12:54Z",
+      "scheduled_publish_at_ist": "2026-10-16T04:42:54+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-15T17:14:39Z"
+    },
+    {
+      "signature": "G09|1969207380|40|0.72754611|0.27149566|1.27497158|shorts",
+      "pair_id": "G09|1969207380|40|0.72754611|0.27149566|1.27497158",
+      "youtube_video_id": "QoAGbsQxbNo",
+      "title": "How Nodes and Connections Form a Network #Shorts",
+      "generator": "G09",
+      "seed": "1969207380",
+      "video_format": "shorts",
+      "audience_segment": "south_asia",
+      "generation_started_at": "2026-10-15T17:12:54Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-16T00:12:54Z",
+      "scheduled_publish_at_ist": "2026-10-16T05:42:54+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-15T17:14:44Z"
     }
   ],
-  "last_scheduled_at": "2026-10-15T18:52:28Z",
+  "last_scheduled_at": "2026-10-16T00:12:54Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
