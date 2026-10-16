@@ -543,9 +543,41 @@
       "scheduled_publish_at_ist": "2026-10-17T05:19:22+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-16T16:50:59Z"
+    },
+    {
+      "signature": "CS01|1366959972|48|0.64323047|0.46656270|0.79572812|landscape",
+      "pair_id": "CS01|1366959972|48|0.64323047|0.46656270|0.79572812",
+      "youtube_video_id": "4kYL5hIylWg",
+      "title": "A Strange Sorting Algorithms Built From Sorting Algorithms | RawSignal",
+      "generator": "CS01",
+      "seed": "1366959972",
+      "video_format": "landscape",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-16T21:27:33Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-17T03:27:33Z",
+      "scheduled_publish_at_ist": "2026-10-17T08:57:33+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-16T21:29:11Z"
+    },
+    {
+      "signature": "CS01|1366959972|48|0.64323047|0.46656270|0.79572812|shorts",
+      "pair_id": "CS01|1366959972|48|0.64323047|0.46656270|0.79572812",
+      "youtube_video_id": "IHAxc43Pbko",
+      "title": "A Strange Sorting Algorithms Built From Sorting Algorithms #Shorts",
+      "generator": "CS01",
+      "seed": "1366959972",
+      "video_format": "shorts",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-16T21:27:33Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-17T04:27:33Z",
+      "scheduled_publish_at_ist": "2026-10-17T09:57:33+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-16T21:29:14Z"
     }
   ],
-  "last_scheduled_at": "2026-10-16T23:49:22Z",
+  "last_scheduled_at": "2026-10-17T04:27:33Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
