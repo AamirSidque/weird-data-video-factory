@@ -447,9 +447,41 @@
       "scheduled_publish_at_ist": "2026-10-16T10:05:05+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-15T21:36:38Z"
+    },
+    {
+      "signature": "JS10|265644885|29|0.67757153|0.57291173|0.65854126|landscape",
+      "pair_id": "JS10|265644885|29|0.67757153|0.57291173|0.65854126",
+      "youtube_video_id": "AOU0UEfS4Qo",
+      "title": "Making Structured Data Visible | RawSignal",
+      "generator": "JS10",
+      "seed": "265644885",
+      "video_format": "landscape",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-16T04:45:58Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-16T10:45:58Z",
+      "scheduled_publish_at_ist": "2026-10-16T16:15:58+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-16T04:46:57Z"
+    },
+    {
+      "signature": "JS10|265644885|29|0.67757153|0.57291173|0.65854126|shorts",
+      "pair_id": "JS10|265644885|29|0.67757153|0.57291173|0.65854126",
+      "youtube_video_id": "I5ahnSZBgko",
+      "title": "Making Structured Data Visible #Shorts",
+      "generator": "JS10",
+      "seed": "265644885",
+      "video_format": "shorts",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-16T04:45:58Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-16T11:45:58Z",
+      "scheduled_publish_at_ist": "2026-10-16T17:15:58+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-16T04:47:00Z"
     }
   ],
-  "last_scheduled_at": "2026-10-16T04:35:05Z",
+  "last_scheduled_at": "2026-10-16T11:45:58Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
