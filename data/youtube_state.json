@@ -575,9 +575,41 @@
       "scheduled_publish_at_ist": "2026-10-17T09:57:33+05:30",
       "upload_status": "scheduled",
       "created_at": "2026-10-16T21:29:14Z"
+    },
+    {
+      "signature": "SAT02|399541729|21|0.94407974|0.58722755|1.51503024|landscape",
+      "pair_id": "SAT02|399541729|21|0.94407974|0.58722755|1.51503024",
+      "youtube_video_id": "Ij0PGs3X7GA",
+      "title": "Raw Particle Flow Experiments Data Became a Particle Flow Experiments | RawSignal",
+      "generator": "SAT02",
+      "seed": "399541729",
+      "video_format": "landscape",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-17T04:43:42Z",
+      "publish_offset_hours": 6,
+      "scheduled_publish_at": "2026-10-17T10:43:42Z",
+      "scheduled_publish_at_ist": "2026-10-17T16:13:42+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-17T04:44:26Z"
+    },
+    {
+      "signature": "SAT02|399541729|21|0.94407974|0.58722755|1.51503024|shorts",
+      "pair_id": "SAT02|399541729|21|0.94407974|0.58722755|1.51503024",
+      "youtube_video_id": "oodR-wEnNag",
+      "title": "Raw Particle Flow Experiments Data Became a Particle Flow Experiments #Shorts",
+      "generator": "SAT02",
+      "seed": "399541729",
+      "video_format": "shorts",
+      "audience_segment": "english_global",
+      "generation_started_at": "2026-10-17T04:43:42Z",
+      "publish_offset_hours": 7,
+      "scheduled_publish_at": "2026-10-17T11:43:42Z",
+      "scheduled_publish_at_ist": "2026-10-17T17:13:42+05:30",
+      "upload_status": "scheduled",
+      "created_at": "2026-10-17T04:44:31Z"
     }
   ],
-  "last_scheduled_at": "2026-10-17T04:27:33Z",
+  "last_scheduled_at": "2026-10-17T11:43:42Z",
   "notified_public": [
     "yzDDZM1f_YA",
     "hsJxfMI9rEY",
